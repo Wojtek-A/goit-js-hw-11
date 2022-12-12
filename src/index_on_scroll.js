@@ -6,12 +6,10 @@ const axios = require('axios').default;
 const input = document.querySelector('.search-input');
 const buttonSearch = document.querySelector('.search-button');
 const gallery = document.querySelector('.gallery');
-const buttonLoadMore = document.querySelector('.load-more');
 
 let pageNr = 0;
 
 async function getPhotos(name, pageNr) {
-  buttonLoadMore.style.display = 'none';
   if (name === '') {
     Notiflix.Notify.failure('Search input cannot be empty.');
   } else
@@ -43,32 +41,23 @@ const findPhotos = e => {
         "We're sorry, but you've reached the end of search results."
       );
       foundedPhotos(data.hits);
-      buttonLoadMore.style.display = 'none';
-    } else if (data.hits.length < 40 && data.hits.length > 0) {
-      Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
-      foundedPhotos(data.hits);
     } else {
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
       foundedPhotos(data.hits);
-      buttonLoadMore.style.display = 'unset';
     }
   });
 };
 
-const showMorePhotos = e => {
-  e.preventDefault();
+const showMorePhotos = () => {
   const searchPhoto = input.value;
-  pageNr++;
   getPhotos(searchPhoto, pageNr).then(data => {
     if (data.hits.length < 40) {
       Notiflix.Notify.failure(
         "We're sorry, but you've reached the end of search results."
       );
-      buttonLoadMore.style.display = 'none';
-      foundedPhotos(data.hits);
     } else {
+      pageNr++;
       foundedPhotos(data.hits);
-      buttonLoadMore.style.display = 'unset';
     }
   });
 };
@@ -95,5 +84,13 @@ const foundedPhotos = data => {
   lightbox.refresh();
 };
 
+window.addEventListener('scroll', () => {
+  if (
+    window.scrollY + window.innerHeight >=
+    document.documentElement.scrollHeight
+  ) {
+    showMorePhotos();
+  }
+});
+
 buttonSearch.addEventListener('click', findPhotos);
-buttonLoadMore.addEventListener('click', showMorePhotos);
