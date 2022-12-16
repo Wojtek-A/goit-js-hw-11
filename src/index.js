@@ -5,13 +5,15 @@ const axios = require('axios').default;
 
 const input = document.querySelector('.search-input');
 const buttonSearch = document.querySelector('.search-button');
-const gallery = document.querySelector('.gallery');
 const buttonLoadMore = document.querySelector('.load-more');
+const gallery = document.querySelector('.gallery');
+const toggle = document.querySelector('.toggle');
+let text = document.querySelector('.text-after');
 
 let pageNr = 0;
+buttonLoadMore.className = 'load-more-hidden';
 
 async function getPhotos(name, pageNr) {
-  buttonLoadMore.style.display = 'none';
   if (name === '') {
     Notiflix.Notify.failure('Search input cannot be empty.');
   } else
@@ -29,8 +31,9 @@ async function getPhotos(name, pageNr) {
 const findPhotos = e => {
   e.preventDefault();
   const searchPhoto = input.value;
-  pageNr = 1;
   gallery.innerHTML = '';
+  pageNr = 1;
+  buttonLoadMore.className = 'load-more-hidden';
   getPhotos(searchPhoto, pageNr).then(data => {
     const totalHits = data.totalHits;
     if (data.hits.length === 0) {
@@ -43,37 +46,49 @@ const findPhotos = e => {
         "We're sorry, but you've reached the end of search results."
       );
       foundedPhotos(data.hits);
-      buttonLoadMore.style.display = 'none';
     } else if (data.hits.length < 40 && data.hits.length > 0) {
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
       foundedPhotos(data.hits);
-    } else {
+    } else if (toggle.classList.contains('active')) {
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
       foundedPhotos(data.hits);
-      buttonLoadMore.style.display = 'unset';
+    } else {
+      buttonLoadMore.className = 'load-more';
+      Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
+      foundedPhotos(data.hits);
     }
   });
 };
 
 const showMorePhotos = e => {
-  e.preventDefault();
   const searchPhoto = input.value;
   pageNr++;
+  console.log(pageNr);
   getPhotos(searchPhoto, pageNr).then(data => {
+    console.log(data);
     if (data.hits.length < 40) {
       Notiflix.Notify.failure(
         "We're sorry, but you've reached the end of search results."
       );
-      buttonLoadMore.style.display = 'none';
+      buttonLoadMore.className = 'load-more-hidden';
+      foundedPhotos(data.hits);
+    }
+    if (pageNr == 13) {
+      Notiflix.Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+      );
       foundedPhotos(data.hits);
     } else {
       foundedPhotos(data.hits);
-      buttonLoadMore.style.display = 'unset';
+      const { height: cardHeight } =
+        gallery.firstElementChild.getBoundingClientRect();
+      window.scrollBy({ top: cardHeight * 2, behavior: 'smooth' });
     }
   });
 };
 
 const foundedPhotos = data => {
+  console.log(pageNr, data);
   const images = data
     .map(
       image =>
@@ -88,12 +103,36 @@ const foundedPhotos = data => {
         </div>`
     )
     .join('');
-
   gallery.insertAdjacentHTML('beforeend', images);
-
   const lightbox = new SimpleLightbox('.gallery a');
   lightbox.refresh();
 };
 
+const scrollHandler = () => {
+  if (
+    window.scrollY + window.innerHeight + 1.5 >=
+    document.documentElement.scrollHeight
+  ) {
+    showMorePhotos();
+  }
+};
+
+const toggleHandler = () => {
+  toggle.classList.toggle('active');
+
+  if (toggle.classList.contains('active')) {
+    text.innerHTML = 'ON';
+    console.log('ON');
+    buttonLoadMore.className = 'load-more-hidden';
+    window.addEventListener('scroll', scrollHandler);
+  } else {
+    text.innerHTML = 'OFF';
+    console.log('OFF');
+    buttonLoadMore.className = 'load-more';
+    window.removeEventListener('scroll', scrollHandler);
+  }
+};
+
 buttonSearch.addEventListener('click', findPhotos);
 buttonLoadMore.addEventListener('click', showMorePhotos);
+toggle.addEventListener('click', toggleHandler);
