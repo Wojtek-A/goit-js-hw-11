@@ -9,6 +9,7 @@ const buttonLoadMore = document.querySelector('.load-more');
 const gallery = document.querySelector('.gallery');
 const toggle = document.querySelector('.toggle');
 let text = document.querySelector('.text-after');
+const buttonToTop = document.querySelector('.scroll-to-top-button');
 
 let pageNr = 0;
 buttonLoadMore.className = 'load-more-hidden';
@@ -34,6 +35,7 @@ const findPhotos = e => {
   gallery.innerHTML = '';
   pageNr = 1;
   buttonLoadMore.className = 'load-more-hidden';
+  toggle.removeEventListener('click', toggleHandler);
   getPhotos(searchPhoto, pageNr).then(data => {
     const totalHits = data.totalHits;
     if (data.hits.length === 0) {
@@ -51,10 +53,12 @@ const findPhotos = e => {
       foundedPhotos(data.hits);
     } else if (toggle.classList.contains('active')) {
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
+      toggle.addEventListener('click', toggleHandler);
       foundedPhotos(data.hits);
     } else {
       buttonLoadMore.className = 'load-more';
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
+      toggle.addEventListener('click', toggleHandler);
       foundedPhotos(data.hits);
     }
   });
@@ -63,9 +67,7 @@ const findPhotos = e => {
 const showMorePhotos = e => {
   const searchPhoto = input.value;
   pageNr++;
-  console.log(pageNr);
   getPhotos(searchPhoto, pageNr).then(data => {
-    console.log(data);
     if (data.hits.length < 40) {
       Notiflix.Notify.failure(
         "We're sorry, but you've reached the end of search results."
@@ -88,7 +90,6 @@ const showMorePhotos = e => {
 };
 
 const foundedPhotos = data => {
-  console.log(pageNr, data);
   const images = data
     .map(
       image =>
@@ -122,17 +123,32 @@ const toggleHandler = () => {
 
   if (toggle.classList.contains('active')) {
     text.innerHTML = 'ON';
-    console.log('ON');
     buttonLoadMore.className = 'load-more-hidden';
     window.addEventListener('scroll', scrollHandler);
   } else {
     text.innerHTML = 'OFF';
-    console.log('OFF');
     buttonLoadMore.className = 'load-more';
     window.removeEventListener('scroll', scrollHandler);
   }
 };
 
+const scrollFunction = () => {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    buttonToTop.style.display = 'block';
+  } else {
+    buttonToTop.style.display = 'none';
+  }
+};
+
+const topFunction = () => {
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+};
+
+window.onscroll = () => {
+  scrollFunction();
+};
+
 buttonSearch.addEventListener('click', findPhotos);
 buttonLoadMore.addEventListener('click', showMorePhotos);
-toggle.addEventListener('click', toggleHandler);
+buttonToTop.addEventListener('click', topFunction);
