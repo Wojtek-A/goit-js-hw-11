@@ -36,6 +36,7 @@ const findPhotos = e => {
   pageNr = 1;
   buttonLoadMore.className = 'load-more-hidden';
   toggle.removeEventListener('click', toggleHandler);
+  toggle.addEventListener('click', toggleHandlerInformation);
   getPhotos(searchPhoto, pageNr).then(data => {
     const totalHits = data.totalHits;
     if (data.hits.length === 0) {
@@ -54,11 +55,14 @@ const findPhotos = e => {
     } else if (toggle.classList.contains('active')) {
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
       toggle.addEventListener('click', toggleHandler);
+      toggle.removeEventListener('click', toggleHandlerInformation);
+
       foundedPhotos(data.hits);
     } else {
       buttonLoadMore.className = 'load-more';
       Notiflix.Notify.info(`Hooray! We found ${totalHits} images.`);
       toggle.addEventListener('click', toggleHandler);
+      toggle.removeEventListener('click', toggleHandlerInformation);
       foundedPhotos(data.hits);
     }
   });
@@ -94,13 +98,13 @@ const foundedPhotos = data => {
     .map(
       image =>
         `<div class="photo-card">
-         <a href="${image.largeImageURL}"><img class="image-preview" src="${image.webformatURL}" alt="${image.tags}" loading="lazy"/></a>
-         <div class="info-items">
-         <p class="info-item"><b>Likes</b> </br> ${image.likes}</p>
-         <p class="info-item"><b>Views</b></br> ${image.views}</p>
-         <p class="info-item"><b>Comments</b></br> ${image.comments}</p>
-         <p class="info-item"><b>Downloads</b></br> ${image.downloads}</p>
-         </div>
+      <a href="${image.largeImageURL}"><img class="image-preview" src="${image.webformatURL}" alt="${image.tags}" loading="lazy"/></a>
+      <div class="info-items">
+      <p class="info-item"><b>Likes</b> </br> ${image.likes}</p>
+      <p class="info-item"><b>Views</b></br> ${image.views}</p>
+      <p class="info-item"><b>Comments</b></br> ${image.comments}</p>
+      <p class="info-item"><b>Downloads</b></br> ${image.downloads}</p>
+      </div>
         </div>`
     )
     .join('');
@@ -132,6 +136,9 @@ const toggleHandler = () => {
   }
 };
 
+const toggleHandlerInformation = () => {
+  Notiflix.Notify.warning("Sorry, but You don't need Infinite scroll");
+};
 const scrollFunction = () => {
   if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
     buttonToTop.style.display = 'block';
@@ -152,3 +159,4 @@ window.onscroll = () => {
 buttonSearch.addEventListener('click', findPhotos);
 buttonLoadMore.addEventListener('click', showMorePhotos);
 buttonToTop.addEventListener('click', topFunction);
+toggle.addEventListener('click', toggleHandlerInformation);
